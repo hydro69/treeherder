@@ -48,6 +48,8 @@ class ResultsetLoader:
                 return GithubPushTransformer
             elif exchange.endswith("pull-request"):
                 return GithubPullRequestTransformer
+        elif "hgpushes" in exchange:
+            return HgPushTransformer
         raise PulseResultsetError(
             "Unsupported resultset type: {}".format(exchange))
 
@@ -179,6 +181,35 @@ class GithubPullRequestTransformer(GithubTransformer):
         Pull requests need the order of their commits reversed.
         """
         return list(reversed(commits))
+
+
+class HgPushTransformer:
+    """
+    payload:{
+        pushlog_pushes:[
+            0:{
+                time:14686073660
+                push_full_json_url:https://hg.mozilla.org/try/json-pushes?version=2&full=1&startID=134147&endID=134148
+                pushid:134148
+                push_json_url:https://hg.mozilla.org/try/json-pushes?version=2&startID=134147&endID=134148
+                user:amiyaguchi@mozilla.com
+            }
+        ],
+        heads:[
+            0:a6c36f356d6b6bd34778bcf20506f4424b61b63c
+        ],
+        repo_url:https://hg.mozilla.org/try
+        _meta:{
+            sent:2016-07-15T18:30:00.423330
+            routing_key:try
+            serializer:json
+            exchange:exchange/hgpushes/v1
+        }
+
+    """
+    def __init__(self, message_body):
+        self.message_body = message_body
+        self.repo_url = message_body["payload"]["repo_url"]
 
 
 class PulseResultsetError(ValueError):
