@@ -155,7 +155,7 @@ treeherder.factory('ThStructuredLinePersist', ['$q',
                 }
                 var f = updateFunc(line);
                 f(line).then(function() {
-                    $rootScope.emit(thEvents.classificationVerified);
+                    $rootScope.$emit(thEvents.classificationVerified);
                 });
             },
 
@@ -247,7 +247,7 @@ treeherder.factory('ThStructuredLinePersist', ['$q',
                     .then(function() {return ThFailureLinesModel.verifyMany(bestClassifications);})
                     .then(function() {
                         thNotify.send("Classifications saved", "success");
-                        $rootScope.emit(thEvents.classificationVerified);
+                        $rootScope.$emit(thEvents.classificationVerified);
                     })
                     .catch(function(err) {
                         var msg = "Error saving classifications:\n ";
@@ -277,7 +277,7 @@ treeherder.factory('ThUnstructuredLinePersist', [
                 return ThTextLogSummaryLineModel
                     .update(line.selectedOption.bugNumber)
                     .then(function() {
-                        $rootScope.emit(thEvents.classificationVerified);
+                        $rootScope.$emit(thEvents.classificationVerified);
                     });
             },
 
@@ -291,7 +291,7 @@ treeherder.factory('ThUnstructuredLinePersist', [
                     });
                 return ThTextLogSummaryLineModel.updateMany(updateData)
                     .then(function() {
-                        $rootScope.emit(thEvents.classificationVerified);
+                        $rootScope.$emit(thEvents.classificationVerified);
                     });
             }
         };
