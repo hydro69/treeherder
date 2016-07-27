@@ -95,16 +95,7 @@ treeherder.factory('ThStructuredLinePersist', ['$q',
         var ThStructuredLinePersist = function() {};
 
         var verifyLine = function(line, cf) {
-            return ThFailureLinesModel.verify(line.id, cf ? cf.id : null)
-                .then(function (response) {
-                    thNotify.send("Classification saved", "success");
-                }, function (errorResp) {
-                    thNotify.send("Error saving classification", "danger", true);
-                })
-                .finally(function () {
-                    thTabs.tabs.autoClassification.update();
-                });
-
+            return ThFailureLinesModel.verify(line.id, cf ? cf.id : null);
         };
 
         var updateClassifiedFailure = function(line) {
@@ -154,9 +145,23 @@ treeherder.factory('ThStructuredLinePersist', ['$q',
                     return;
                 }
                 var f = updateFunc(line);
-                f(line).then(function() {
-                    $rootScope.$emit(thEvents.classificationVerified);
-                });
+                f(line)
+                    .then(function() {
+                        $rootScope.$emit(thEvents.classificationVerified);
+                    })
+                    .then(function() {
+                        thNotify.send("Classification saved", "success");
+                        $rootScope.$emit(thEvents.classificationVerified);
+                    })
+                    .catch(function(err) {
+                        var msg = "Error saving classifications:\n ";
+                        if (err.stack) {
+                            msg += err + err.stack;
+                        } else {
+                            msg += err.statusText + " - " + err.data.detail;
+                        }
+                        thNotify.send(msg, "danger");
+                    });;
             },
 
             saveAll: function(lines) {
@@ -246,7 +251,7 @@ treeherder.factory('ThStructuredLinePersist', ['$q',
                 return setupClassifiedFailures
                     .then(function() {return ThFailureLinesModel.verifyMany(bestClassifications);})
                     .then(function() {
-                        thNotify.send("Classifications saved", "success");
+                        thNotify.send("Classification saved", "success");
                         $rootScope.$emit(thEvents.classificationVerified);
                     })
                     .catch(function(err) {
