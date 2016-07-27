@@ -495,6 +495,13 @@ treeherder.controller('PluginCtrl', [
             $scope.updateBugs();
         });
 
+        $rootScope.$on(thEvents.classificationVerified, function() {
+            // These operations are unneeded unless we verified the full job,
+            // But getting that information to here seems to be non-trivial
+            $scope.updateBugs();
+            $timeout($scope.updateClassifications);
+        });
+
         $scope.pinboard_service = thPinboard;
 
         // expose the tab service properties on the scope
