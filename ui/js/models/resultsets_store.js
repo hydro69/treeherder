@@ -597,14 +597,13 @@ treeherder.factory('ThResultSetStore', [
             while (jobFetchList.length > 0) {
                 var jobFetchSlice = jobFetchList.splice(0, count);
                 ThJobModel.get_list(repoName, {
-                    job_id__in: jobFetchSlice.join(),
+                    id__in: jobFetchSlice.join(),
                     count: count
                 })
                     .then(function(jobsFetched){
                         // if there are jobs unfetched, enqueue them for the next run
-                        var ids_fetched = _.pluck(jobsFetched, "id");
-                        var ids_unfetched = _.difference(jobFetchSlice, ids_fetched);
-                        if(ids_unfetched.length > 0){
+                        var ids_unfetched = jobFetchList.splice(count);
+                        if (ids_unfetched.length > 0) {
                             $log.debug("re-adding " +
                                        ids_unfetched.length + "job to the fetch queue");
                             unavailableJobs.push.apply(unavailableJobs, ids_unfetched);
