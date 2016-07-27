@@ -69,13 +69,6 @@ class ClassifiedFailureViewSet(viewsets.ModelViewSet):
         classified_failures = as_dict(
             ClassifiedFailure.objects.filter(id__in=bug_numbers.keys()), "id")
 
-        if len(classified_failures) != len(bug_numbers):
-            missing = set(bug_numbers.keys()) - set(classified_failures.keys())
-            return ("No classified failures with id: {0}"
-                    .format(", ".join(str(item) for item in missing)),
-                    HTTP_404_NOT_FOUND)
-
-        merges = {}
         existing = (ClassifiedFailure.objects
                     .filter(bug_number__in=bug_numbers.values())
                     .all())
@@ -85,6 +78,17 @@ class ClassifiedFailureViewSet(viewsets.ModelViewSet):
                     if item.id not in bug_numbers or
                     item.bug_number != bug_numbers[item.id]]
 
+        # We don't count classified failures as missing if there is an existing failure
+        # with the same bug number, even if it has a different id. This is because classification
+        # of other jobs may have caused the classified failure to have been deleted and replaced
+        # by another, without updating all the ids in the client
+        missing = set(bug_numbers.keys()) - set(classified_failures.keys()) - set(item.id for item in existing)
+        if missing:
+            return ("No classified failures with id: {0}"
+                    .format(", ".join(str(item) for item in missing)),
+                    HTTP_404_NOT_FOUND)
+
+        merges = {}
         if existing:
             if any(item.id in bug_numbers for item in existing):
                 return ("Cannot swap classified failure bug numbers in a single operation",
