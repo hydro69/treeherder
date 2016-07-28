@@ -161,7 +161,7 @@ treeherder.factory('ThStructuredLinePersist', ['$q',
                             msg += err.statusText + " - " + err.data.detail;
                         }
                         thNotify.send(msg, "danger");
-                    });;
+                    });
             },
 
             saveAll: function(lines) {
